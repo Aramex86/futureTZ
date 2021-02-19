@@ -1,11 +1,5 @@
-import React from "react";
-// import clsx from "clsx";
-import {
-  createStyles,
-//   lighten,
-  makeStyles,
-  Theme,
-} from "@material-ui/core/styles";
+import React, { useEffect } from "react";
+import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -14,58 +8,37 @@ import TableHead from "@material-ui/core/TableHead";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
-// import Toolbar from '@material-ui/core/Toolbar';
-// import Typography from '@material-ui/core/Typography';
 import Paper from "@material-ui/core/Paper";
-// import Checkbox from '@material-ui/core/Checkbox';
-// import IconButton from '@material-ui/core/IconButton';
-// import Tooltip from '@material-ui/core/Tooltip';
-// import FormControlLabel from '@material-ui/core/FormControlLabel';
-// import Switch from '@material-ui/core/Switch';
-// import DeleteIcon from '@material-ui/icons/Delete';
-// import FilterListIcon from '@material-ui/icons/FilterList';
+import Button from "@material-ui/core/Button";
 
-// "id": 410,
-// "firstName": "Iris",
-// "lastName": "Cabrera",
-// "email": "GTurich@massa.io",
-// "phone": "(431)936-4529",
+import { getData } from "../api/api";
+import Filter from "./Filter";
+import AddItem from "./AddItem";
 
 interface Data {
   firstName: string;
   email: string;
   lastName: string;
-  name: number;
-  phone: string;
-}
-interface HeaderData {
-  firstName: string;
-  email: string;
-  lastName: string;
-  name: string;
+  id: number;
   phone: string;
 }
 
-function createData(
-  name: number,
-  firstName: string,
-  lastName: string,
-  email: string,
-  phone: string
-): Data {
-  return { name, firstName, lastName, email, phone };
-}
+// type Person = {
+//   id: number;
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   phone: string;
+//   address: Address;
+//   description: string;
+// };
 
-const rows = [
-  createData(410, "Iris", "Cabrera", "GTurich@massa.io", "(431)936-4529"),
-  createData(520, "Ari", "Maschito", "GTurich@massa.io", "(431)936-4529"),
-  createData(521, "Ari", "Maschito", "GTurich@massa.io", "(431)936-4529"),
-  createData(522, "Ari", "Maschito", "GTurich@massa.io", "(431)936-4529"),
-  createData(523, "Ari", "Maschito", "GTurich@massa.io", "(431)936-4529"),
-  createData(524, "Ari", "Maschito", "GTurich@massa.io", "(431)936-4529"),
-  createData(525, "Ari", "Maschito", "GTurich@massa.io", "(431)936-4529"),
-  createData(526, "Ari", "Maschito", "GTurich@massa.io", "(431)936-4529"),
-];
+// type Address = {
+//   streetAddress: string;
+//   city: string;
+//   state: string;
+//   zip: string;
+// };
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -103,19 +76,24 @@ function stableSort<T>(array: T[], comparator: (a: T, b: T) => number) {
 
 interface HeadCell {
   disablePadding: boolean;
-  id: keyof HeaderData;
+  id: keyof Data;
   label: string;
   numeric: boolean;
 }
 
 const headCells: HeadCell[] = [
   {
-    id: "name",
+    id: "id",
     numeric: true,
     disablePadding: true,
     label: "ID",
   },
-  { id: "firstName", numeric: true, disablePadding: false, label: "First Name" },
+  {
+    id: "firstName",
+    numeric: true,
+    disablePadding: false,
+    label: "First Name",
+  },
   { id: "lastName", numeric: true, disablePadding: false, label: "Last Name" },
   { id: "email", numeric: true, disablePadding: false, label: "Email" },
   { id: "phone", numeric: true, disablePadding: false, label: "Phone" },
@@ -133,23 +111,16 @@ interface EnhancedTableProps {
 }
 
 function EnhancedTableHead(props: EnhancedTableProps) {
-  const {
-    classes,
-    order,
-    orderBy,
-    onRequestSort,
-  } = props;
+  const { classes, order, orderBy, onRequestSort } = props;
   const createSortHandler = (property: keyof Data) => (
     event: React.MouseEvent<unknown>
   ) => {
     onRequestSort(event, property);
   };
-
   return (
     <TableHead>
       <TableRow>
-        <TableCell padding="checkbox">
-        </TableCell>
+        <TableCell padding="checkbox"></TableCell>
         {headCells.map((headCell) => (
           <TableCell
             key={headCell.id}
@@ -176,15 +147,16 @@ function EnhancedTableHead(props: EnhancedTableProps) {
   );
 }
 
-
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       width: "100%",
+      "& .MuiTableCell-root": {},
     },
     paper: {
-      width: "100%",
+      width: "95%",
       marginBottom: theme.spacing(2),
+      margin: "auto",
     },
     table: {
       minWidth: 750,
@@ -200,6 +172,16 @@ const useStyles = makeStyles((theme: Theme) =>
       top: 20,
       width: 1,
     },
+    button: {
+      display: "block",
+      margin: "35px",
+    },
+    addcomp:{
+      width:'95%',
+      display:'flex',
+      justifyContent:'flex-end',
+      margin:'auto'
+    }
   })
 );
 
@@ -209,6 +191,29 @@ export default function EnhancedTable() {
   const [orderBy, setOrderBy] = React.useState<keyof Data>("firstName");
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [rows, setRows] = React.useState<Array<Data>>([]);
+  const [idValue, setIdValue] = React.useState<number>(0);
+  const [firstName, setFirstName] = React.useState<string>("");
+  const [lastName, setLastName] = React.useState<string>("");
+  const [email, setEmail] = React.useState<string>("");
+  const [phone, setPhone] = React.useState<string>("");
+  const [filterAll, setFilterAll] = React.useState<Array<Data>>([]);
+  const [showAddItem,setShowAddItem] = React.useState(false)
+
+  const filteredRows: Array<any> = [];
+
+  useEffect(() => {
+    const fetchSmallData = async () => {
+      const res = await getData.getSmallData();
+      setRows(res);
+    };
+    const fetchBigData = async () => {
+      const res = await getData.getBigData();
+      setRows(res);
+    };
+    //fetchBigData();
+    fetchSmallData();
+  }, []);
 
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
@@ -219,9 +224,12 @@ export default function EnhancedTable() {
     setOrderBy(property);
   };
 
-
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
 
   const handleChangeRowsPerPage = (
@@ -231,12 +239,99 @@ export default function EnhancedTable() {
     setPage(0);
   };
 
-
   const emptyRows =
     rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
+  const findById = (id: number) => {
+    const find = rows.filter((el) => {
+      if (Object.values(el).includes(idValue)) {
+        return el.id === id;
+      }
+    });
+
+    filteredRows.push(find);
+  };
+
+  const findByFirstName = (firstName: string) => {
+    const firstNames = rows.filter((el) => {
+      const lowerCase = el.firstName.toLowerCase();
+      return lowerCase === firstName;
+    });
+    filteredRows.push(firstNames);
+  };
+  const findByLastName = (lastName: string) => {
+    const lastNames = rows.filter((el) => {
+      const lowerCase = el.lastName.toLowerCase();
+      return lowerCase === lastName;
+    });
+    filteredRows.push(lastNames);
+  };
+  const findByEmail = (email: string) => {
+    const emails = rows.filter((el) => {
+      const lowerCase = el.email.toLowerCase();
+      return lowerCase === email;
+    });
+    filteredRows.push(emails);
+  };
+  const findByPhone = (phone: string) => {
+    const phones = rows.filter((el) => {
+      return el.phone === phone;
+    });
+    filteredRows.push(phones);
+  };
+  // const handleFilterAll = () => {
+  //   const result = rows.filter((el) => {
+  //     return (
+  //       el.id === idValue ||
+  //       el.firstName.toLowerCase() === firstName ||
+  //       el.lastName.toLowerCase() === lastName
+  //     );
+  //   });
+  //   setFilterAll(result);
+  // };
+  // console.log(filterAll);
+
+  const handaleShowAdd=()=>{
+    setShowAddItem(!showAddItem);
+  }
+
+  const IdValue = (id: number) => {
+    setIdValue(id);
+  };
+  const firstNameValue = (firstName: string) => {
+    setFirstName(firstName);
+  };
+  const lastNameValue = (lastName: string) => {
+    setLastName(lastName);
+  };
+  const emailValue = (email: string) => {
+    setEmail(email);
+  };
+  const phoneValue = (phone: string) => {
+    setPhone(phone);
+  };
+
+  findById(idValue);
+  findByFirstName(firstName);
+  findByLastName(lastName);
+  findByEmail(email);
+  findByPhone(phone);
+
   return (
     <div className={classes.root}>
+      <div className={classes.addcomp}>
+      <Button
+        variant="contained"
+        color="primary"
+        size="small"
+        onClick={handaleShowAdd}
+        // disabled={true}
+        className={classes.button}
+        >
+        Add
+      </Button>
+        </div>
+     {showAddItem? <AddItem/>:''}
       <Paper className={classes.paper}>
         <TableContainer>
           <Table
@@ -251,37 +346,111 @@ export default function EnhancedTable() {
               onRequestSort={handleRequestSort}
               rowCount={rows.length}
             />
-            <TableBody>
-              {stableSort(rows, getComparator(order, orderBy))
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row, index) => {
-                  const labelId = `enhanced-table-checkbox-${index}`;
 
-                  return (
-                    <TableRow
-                      hover
-                      tabIndex={-1}
-                      key={row.name}
-                    >
-                      <TableCell padding="checkbox">
-                      </TableCell>
-                      <TableCell
-                        component="th"
-                        id={labelId}
-                        scope="row"
-                        padding="none"
-                      >
-                        {row.name}
-                      </TableCell>
-                      <TableCell align="right">{row.firstName}</TableCell>
-                      <TableCell align="right">{row.lastName}</TableCell>
-                      <TableCell align="right">{row.email}</TableCell>
-                      <TableCell align="right">{row.phone}</TableCell>
-                    </TableRow>
-                  );
-                })}
+            <TableBody>
+              <TableRow>
+                <TableCell padding="checkbox">
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    size="small"
+                    // onClick={handleFilterAll}
+                    disabled={true}
+                  >
+                    Find
+                  </Button>
+                </TableCell>
+                <TableCell align="center">
+                  <Filter
+                    IdValue={IdValue}
+                    firstNameValue={firstNameValue}
+                    lastNameValue={lastNameValue}
+                    emailValue={emailValue}
+                    phoneValue={phoneValue}
+                  />
+                </TableCell>
+                <TableCell align="center">
+                  <Filter
+                    IdValue={IdValue}
+                    firstNameValue={firstNameValue}
+                    lastNameValue={lastNameValue}
+                    emailValue={emailValue}
+                    phoneValue={phoneValue}
+                  />
+                </TableCell>
+                <TableCell align="center">
+                  <Filter
+                    IdValue={IdValue}
+                    firstNameValue={firstNameValue}
+                    lastNameValue={lastNameValue}
+                    emailValue={emailValue}
+                    phoneValue={phoneValue}
+                  />
+                </TableCell>
+                <TableCell align="center">
+                  <Filter
+                    IdValue={IdValue}
+                    firstNameValue={firstNameValue}
+                    lastNameValue={lastNameValue}
+                    emailValue={emailValue}
+                    phoneValue={phoneValue}
+                  />
+                </TableCell>
+                <TableCell align="center">
+                  <Filter
+                    IdValue={IdValue}
+                    firstNameValue={firstNameValue}
+                    lastNameValue={lastNameValue}
+                    emailValue={emailValue}
+                    phoneValue={phoneValue}
+                  />
+                </TableCell>
+              </TableRow>
+              {filteredRows.flat().length === 0
+                ? stableSort(rows, getComparator(order, orderBy))
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((row, index) => {
+                      const labelId = `enhanced-table-checkbox-${index}`;
+                      return (
+                        <TableRow hover tabIndex={-1} key={row.id}>
+                          <TableCell padding="checkbox"></TableCell>
+                          <TableCell
+                            component="th"
+                            id={labelId}
+                            scope="row"
+                            padding="none"
+                          >
+                            {row.id}
+                          </TableCell>
+                          <TableCell align="center">{row.firstName}</TableCell>
+                          <TableCell align="center">{row.lastName}</TableCell>
+                          <TableCell align="center">{row.email}</TableCell>
+                          <TableCell align="center">{row.phone}</TableCell>
+                        </TableRow>
+                      );
+                    })
+                : filteredRows.flat().map((el, index) => {
+                    const labelId = `enhanced-table-checkbox-${index}`;
+                    return (
+                      <TableRow hover tabIndex={-1} key={el.id}>
+                        <TableCell padding="checkbox"></TableCell>
+                        <TableCell
+                          component="th"
+                          id={labelId}
+                          scope="row"
+                          padding="none"
+                        >
+                          {el.id}
+                        </TableCell>
+                        <TableCell align="center">{el.firstName}</TableCell>
+                        <TableCell align="center">{el.lastName}</TableCell>
+                        <TableCell align="center">{el.email}</TableCell>
+                        <TableCell align="center">{el.phone}</TableCell>
+                      </TableRow>
+                    );
+                  })}
               {emptyRows > 0 && (
-                <TableRow >
+                <TableRow>
                   <TableCell colSpan={6} />
                 </TableRow>
               )}
