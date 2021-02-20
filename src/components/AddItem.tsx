@@ -1,7 +1,9 @@
 import React from "react";
 import { makeStyles, createStyles, Theme } from "@material-ui/core/styles";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { Button } from "@material-ui/core";
+import InputMask from "react-input-mask";
+
 
 interface IFormInput {
   firstName: string;
@@ -35,9 +37,10 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const AddItem = () => {
   const classes = useStyles();
-  const { register, handleSubmit } = useForm<IFormInput>();
+  const { register, handleSubmit, control, reset } = useForm<IFormInput>();
   const onSubmit = (data: IFormInput) => {
     console.log(data);
+    reset();
   };
 
   return (
@@ -72,14 +75,14 @@ const AddItem = () => {
         required
         className={classes.input}
       />
-      <input
+      <Controller
+        as={InputMask}
+        control={control}
+        mask="(999)999-9999"
+        defaultValue="Phone (999)999-9999"
         name="phone"
-        type="phone"
-        ref={register({ required: true })}
-        placeholder="Phone (999)999-9999"
         required
         className={classes.input}
-        id="phone"
       />
 
       <Button variant="contained" color="primary" type="submit">

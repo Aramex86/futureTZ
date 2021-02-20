@@ -176,12 +176,12 @@ const useStyles = makeStyles((theme: Theme) =>
       display: "block",
       margin: "35px",
     },
-    addcomp:{
-      width:'95%',
-      display:'flex',
-      justifyContent:'flex-end',
-      margin:'auto'
-    }
+    addcomp: {
+      width: "95%",
+      display: "flex",
+      justifyContent: "flex-end",
+      margin: "auto",
+    },
   })
 );
 
@@ -198,7 +198,7 @@ export default function EnhancedTable() {
   const [email, setEmail] = React.useState<string>("");
   const [phone, setPhone] = React.useState<string>("");
   const [filterAll, setFilterAll] = React.useState<Array<Data>>([]);
-  const [showAddItem,setShowAddItem] = React.useState(false)
+  const [showAddItem, setShowAddItem] = React.useState(false);
 
   const filteredRows: Array<any> = [];
 
@@ -291,9 +291,9 @@ export default function EnhancedTable() {
   // };
   // console.log(filterAll);
 
-  const handaleShowAdd=()=>{
+  const handaleShowAdd = () => {
     setShowAddItem(!showAddItem);
-  }
+  };
 
   const IdValue = (id: number) => {
     setIdValue(id);
@@ -320,18 +320,18 @@ export default function EnhancedTable() {
   return (
     <div className={classes.root}>
       <div className={classes.addcomp}>
-      <Button
-        variant="contained"
-        color="primary"
-        size="small"
-        onClick={handaleShowAdd}
-        // disabled={true}
-        className={classes.button}
+        <Button
+          variant="contained"
+          color="primary"
+          size="small"
+          onClick={handaleShowAdd}
+          // disabled={true}
+          className={classes.button}
         >
-        Add
-      </Button>
-        </div>
-     {showAddItem? <AddItem/>:''}
+          Add
+        </Button>
+      </div>
+      {showAddItem ? <AddItem /> : ""}
       <Paper className={classes.paper}>
         <TableContainer>
           <Table
@@ -348,64 +348,13 @@ export default function EnhancedTable() {
             />
 
             <TableBody>
-              <TableRow>
-                <TableCell padding="checkbox">
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    size="small"
-                    // onClick={handleFilterAll}
-                    disabled={true}
-                  >
-                    Find
-                  </Button>
-                </TableCell>
-                <TableCell align="center">
-                  <Filter
-                    IdValue={IdValue}
-                    firstNameValue={firstNameValue}
-                    lastNameValue={lastNameValue}
-                    emailValue={emailValue}
-                    phoneValue={phoneValue}
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  <Filter
-                    IdValue={IdValue}
-                    firstNameValue={firstNameValue}
-                    lastNameValue={lastNameValue}
-                    emailValue={emailValue}
-                    phoneValue={phoneValue}
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  <Filter
-                    IdValue={IdValue}
-                    firstNameValue={firstNameValue}
-                    lastNameValue={lastNameValue}
-                    emailValue={emailValue}
-                    phoneValue={phoneValue}
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  <Filter
-                    IdValue={IdValue}
-                    firstNameValue={firstNameValue}
-                    lastNameValue={lastNameValue}
-                    emailValue={emailValue}
-                    phoneValue={phoneValue}
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  <Filter
-                    IdValue={IdValue}
-                    firstNameValue={firstNameValue}
-                    lastNameValue={lastNameValue}
-                    emailValue={emailValue}
-                    phoneValue={phoneValue}
-                  />
-                </TableCell>
-              </TableRow>
+              <Filter
+                IdValue={IdValue}
+                firstNameValue={firstNameValue}
+                lastNameValue={lastNameValue}
+                emailValue={emailValue}
+                phoneValue={phoneValue}
+              />
               {filteredRows.flat().length === 0
                 ? stableSort(rows, getComparator(order, orderBy))
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
