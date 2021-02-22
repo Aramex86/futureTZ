@@ -1,8 +1,9 @@
-import React from "react";
+import React, { FC } from "react";
 import { makeStyles, createStyles, Theme } from "@material-ui/core/styles";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@material-ui/core";
 import InputMask from "react-input-mask";
+import { Data } from "./Table";
 
 
 interface IFormInput {
@@ -11,6 +12,10 @@ interface IFormInput {
   lastName: string;
   id: number;
   phone: string;
+}
+
+type PropsType={
+  addItemToTable:(data:Data)=>void
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -35,16 +40,16 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-const AddItem = () => {
+const AddItem:FC<PropsType> = ({addItemToTable}) => {
   const classes = useStyles();
   const { register, handleSubmit, control, reset } = useForm<IFormInput>();
   const onSubmit = (data: IFormInput) => {
-    console.log(data);
+    addItemToTable(data);
     reset();
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={classes.root}>
+    <form onSubmit={handleSubmit(onSubmit)} className={classes.root} autoComplete='off'>
       <input
         name="id"
         ref={register({ required: true })}
@@ -55,7 +60,7 @@ const AddItem = () => {
       />
       <input
         name="firstName"
-        ref={register({ required: true, maxLength: 20 })}
+        ref={register({ required: true, pattern: /^[A-Za-z]+$/i  })}
         placeholder="FirstName"
         className={classes.input}
         required
@@ -70,7 +75,13 @@ const AddItem = () => {
       <input
         name="email"
         type="email"
-        ref={register({ required: true })}
+        ref={register({
+          required: "Required",
+          pattern: {
+            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+            message: "invalid email address"
+          }
+        })}
         placeholder="Email"
         required
         className={classes.input}
