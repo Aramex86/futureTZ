@@ -12,7 +12,6 @@ import Paper from "@material-ui/core/Paper";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
 
-import { getData } from "../api/api";
 import Filter from "./Filter";
 import AddItem from "./AddItem";
 import PersonDetail from "./PersonDetail";
